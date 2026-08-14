@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동아리 '박살' - 불법 도박의 실체 체험</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      background-color: #1a1a24;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #ff4757;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      color: #a4b0be;
+      margin-bottom: 25px;
+      font-size: 0.9rem;
+    }
+
+    .dashboard {
+      background: #2f3542;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+    }
+
+    .balance-box {
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 15px;
+      color: #eccc68;
+    }
+
+    .betting-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .form-group {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    select, input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #57606f;
+      background: #747d8c;
+      color: white;
+      font-size: 1rem;
+      width: 60%;
+    }
+
+    button {
+      padding: 12px;
+      background: #ff4757;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 5px;
+    }
+
+    button:hover { background: #ff6b81; }
+    button:disabled { background: #57606f; cursor: not-allowed; }
+
+    /* 경주 트랙 */
+    .track-container {
+      background: #2f3542;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 600px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .track {
+      position: relative;
+      height: 50px;
+      background: #57606f;
+      margin-bottom: 15px;
+      border-radius: 25px;
+      overflow: hidden;
+      border-right: 6px solid #ffa502; /* 결승선 */
+    }
+
+    .snail {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 28px;
+      transition: left 0.05s ease-out;
+    }
+
+    .snail-label {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: bold;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.7);
+      z-index: 2;
+    }
+
+    .result-msg {
+      margin-top: 15px;
+      font-weight: bold;
+      text-align: center;
+      min-height: 24px;
+      font-size: 1.1rem;
+    }
+
+    /* 게임 오버 알림 모달 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: #2f3542;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 420px;
+      border: 2px solid #ff4757;
+    }
+
+    .modal-content h2 { color: #ff4757; margin-top: 0; }
+    .modal-content p { line-height: 1.6; color: #dcdde1; }
+
+    .help-call {
+      margin-top: 18px;
+      background: #ffffff;
+      color: #111111;
+      padding: 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.05rem;
+      border: 1px solid #dcdde1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🐌 100% 실시간 달팽이 게임</h1>
+  <div class="subtitle">통진고 대표 동아리 '박살' - 불법 도박 시뮬레이터</div>
+
+  <div class="dashboard">
+    <div class="balance-box">보유 금액: <span id="balance">5000</span>원</div>
+    
+    <div class="betting-form">
+      <div class="form-group">
+        <label for="snail-select">달팽이 선택:</label>
+        <select id="snail-select">
+          <option value="1">1번 달팽이</option>
+          <option value="2">2번 달팽이</option>
+          <option value="3">3번 달팽이</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="odds-select">배당률 선택:</label>
+        <select id="odds-select">
+          <option value="2.0">2배 </option>
+          <option value="3.0" selected>3배 </option>
+          <option value="4.0">4배 </option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="bet-amount">배팅 금액 (원):</label>
+        <input type="number" id="bet-amount" value="500" min="100" step="100">
+      </div>
+
+      <button id="start-btn" onclick="startRace()">배팅하고 레이스 시작</button>
+    </div>
+  </div>
+
+  <div class="track-container">
+    <div class="track">
+      <span class="snail-label">1번</span>
+      <div id="snail-1" class="snail">🐌</div>
+    </div>
+    <div class="track">
+      <span class="snail-label">2번</span>
+      <div id="snail-2" class="snail">🐌</div>
+    </div>
+    <div class="track">
+      <span class="snail-label">3번</span>
+      <div id="snail-3" class="snail">🐌</div>
+    </div>
+
+    <div id="result" class="result-msg"></div>
+  </div>
+
+  <!-- 파산 시 나오는 교육용 모달 -->
+  <div id="game-over-modal" class="modal">
+    <div class="modal-content">
+      <h2>💸 자산 올인 (파산)</h2>
+      <p>보유 금액을 모두 잃었습니다!</p>
+      <hr style="border-color: #57606f; margin: 15px 0;">
+      <p style="text-align: left; font-size: 0.92rem;">
+        <b>💡 [박살] 도박 예방 메시지</b><br>
+        판돈을 올리거나 높은 배당을 노릴수록 연속으로 패배하지 않으셨나요?<br><br>
+        실제 불법 도박 사이트도 <b>유저가 큰 금액을 배팅하거나 한방을 노릴 때 시스템이 패배 확률을 급격히 올려</b> 순식간에 파산하도록 조작되어 있습니다.
+      </p>
+      
+      <div class="help-call">
+        📞 도박문제 전문상담: <b>국번없이 1336</b><br>
+        <span style="font-size:0.8rem; color: #555; font-weight:normal;">(한국도박문제예방치유원 24시간 무료상담)</span>
+      </div>
+
+      <button onclick="resetGame()" style="margin-top: 18px; width: 100%;">다시 도전하기 (초기화)</button>
+    </div>
+  </div>
+
+  <script>
+    let balance = 5000;
+    let isRacing = false;
+    let playCount = 0; // 진행 판수
+    
+    // 승패 조작용 변수
+    let targetLossCount = -1; // 승리까지 필요한 패배 판수
+    let currentLossCount = 0; // 현재 진행된 패배 판수
+
+    function updateBalanceDisplay() {
+      document.getElementById('balance').innerText = balance.toLocaleString();
+    }
+
+    function startRace() {
+      if (isRacing) return;
+
+      const betAmount = parseInt(document.getElementById('bet-amount').value);
+      const selectedSnail = parseInt(document.getElementById('snail-select').value);
+      const selectedOdds = parseFloat(document.getElementById('odds-select').value);
+      const resultDiv = document.getElementById('result');
+
+      // 유효성 검사
+      if (isNaN(betAmount) || betAmount <= 0) {
+        alert('올바른 배팅 금액을 입력하세요.');
+        return;
+      }
+      if (betAmount > balance) {
+        alert('보유 금액보다 많은 금액을 배팅할 수 없습니다!');
+        return;
+      }
+
+      // 차감전 자산 기반 위험도 계산을 위해 저장
+      const currentTotal = balance;
+
+      // 차감
+      balance -= betAmount;
+      updateBalanceDisplay();
+      isRacing = true;
+      playCount++;
+      document.getElementById('start-btn').disabled = true;
+      resultDiv.innerText = "⚡ 긴장감 넘치는 레이스 중...";
+      resultDiv.style.color = "#fff";
+
+      // 위치 초기화
+      const pos = [0, 0, 0];
+      const snailElements = [
+        document.getElementById('snail-1'),
+        document.getElementById('snail-2'),
+        document.getElementById('snail-3')
+      ];
+
+      snailElements.forEach(s => s.style.left = '0%');
+
+      // 🎯 [승패 로직 결정]
+      let shouldWin = false;
+
+      if (playCount <= 2) {
+        // 1~2번째 판은 무조건 승리
+        shouldWin = true;
+      } else {
+        // 3번째 판부터: 배팅금 및 배당률에 따른 패배 판수(Target) 뽑기
+        if (targetLossCount === -1) {
+          const betRatio = betAmount / currentTotal; // 배팅 비율 (0 ~ 1)
+          
+          let minLoss = 0;
+          let maxLoss = 2;
+
+          // 배팅금이나 배당률이 크면 패배 판수 범위를 크게 상향
+          if (betRatio >= 0.5 || selectedOdds >= 4.0) {
+            // 판돈 50% 이상 or 4배 배당 -> 2 ~ 4판 패배
+            minLoss = 2;
+            maxLoss = 4;
+          } else if (betRatio >= 0.25 || selectedOdds >= 3.0) {
+            // 판돈 25% 이상 or 3배 배당 -> 1 ~ 3판 패배
+            minLoss = 1;
+            maxLoss = 3;
+          } else {
+            // 소액 & 2배 배당 -> 0 ~ 1판 패배
+            minLoss = 0;
+            maxLoss = 1;
+          }
+
+          // [minLoss, maxLoss] 범위 내에서 랜덤 지정
+          targetLossCount = Math.floor(Math.random() * (maxLoss - minLoss + 1)) + minLoss;
+        }
+
+        if (currentLossCount >= targetLossCount) {
+          shouldWin = true;
+          targetLossCount = -1; // 승리했으므로 조건 초기화
+          currentLossCount = 0;
+        } else {
+          shouldWin = false;
+          currentLossCount++;
+        }
+      }
+
+      // 속도 보정값 설정
+      const speedFactor = shouldWin ? 1.15 : 0.88;
+
+      // ⚡ 5초 레이스 (50ms 마다 실행)
+      const interval = setInterval(() => {
+        for (let i = 0; i < 3; i++) {
+          const snailNum = i + 1;
+          
+          let speed = Math.random() * 0.9 + 0.6;
+
+          if (snailNum === selectedSnail) {
+            speed *= speedFactor; 
+          } else {
+            speed *= (Math.random() * 0.2 + 0.9);
+          }
+
+          pos[i] += speed;
+          if (pos[i] > 90) pos[i] = 90;
+
+          snailElements[i].style.left = pos[i] + '%';
+        }
+
+        if (pos[0] >= 90 || pos[1] >= 90 || pos[2] >= 90) {
+          clearInterval(interval);
+          finishRace(pos, selectedSnail, betAmount, selectedOdds);
+        }
+      }, 50);
+    }
+
+    function finishRace(pos, selectedSnail, betAmount, selectedOdds) {
+      let winner = 0;
+      let maxPos = -1;
+
+      for (let i = 0; i < 3; i++) {
+        if (pos[i] > maxPos) {
+          maxPos = pos[i];
+          winner = i + 1;
+        }
+      }
+
+      const resultDiv = document.getElementById('result');
+
+      if (winner === selectedSnail) {
+        const winAmount = Math.floor(betAmount * selectedOdds);
+        balance += winAmount;
+        resultDiv.innerText = `🎉 축하합니다! ${winner}번 승리! (+${winAmount.toLocaleString()}원 / ${selectedOdds}배)`;
+        resultDiv.style.color = "#2ed573";
+      } else {
+        resultDiv.innerText = `🚨 아쉽습니다! ${winner}번 승리. (-${betAmount.toLocaleString()}원)`;
+        resultDiv.style.color = "#ff4757";
+      }
+
+      updateBalanceDisplay();
+      isRacing = false;
+      document.getElementById('start-btn').disabled = false;
+
+      // 파산 시 모달 노출
+      if (balance <= 0) {
+        setTimeout(() => {
+          document.getElementById('game-over-modal').style.display = 'flex';
+        }, 600);
+      }
+    }
+
+    function resetGame() {
+      balance = 5000;
+      playCount = 0;
+      targetLossCount = -1;
+      currentLossCount = 0;
+      updateBalanceDisplay();
+      document.getElementById('game-over-modal').style.display = 'none';
+      document.getElementById('result').innerText = "";
+      document.getElementById('snail-1').style.left = '0%';
+      document.getElementById('snail-2').style.left = '0%';
+      document.getElementById('snail-3').style.left = '0%';
+    }
+  </script>
+</body>
+</html>
